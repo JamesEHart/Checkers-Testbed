@@ -49,6 +49,14 @@
       content: '\26AB';
       font-size: 36px;
     }
+    .dark.piece-red.king::after {
+      content: '\1F534\1F451';
+      font-size: 36px;
+    }
+    .dark.piece-black.king::after {
+      content: '\26AB\1F451';
+      font-size: 36px;
+    }
     .selected {
       outline: 3px solid #f1c40f;
       box-shadow: 0 0 10px 2px #f1c40f;
@@ -101,15 +109,19 @@
         const toRow = parseInt(cell.dataset.row);
         const toCol = parseInt(cell.dataset.col);
 
-        const isDiagonalMove = Math.abs(fromRow - toRow) === 1 && Math.abs(fromCol - toCol) === 1;
-        const isCaptureMove = Math.abs(fromRow - toRow) === 2 && Math.abs(fromCol - toCol) === 2;
+        const isKing = selectedCell.classList.contains('king');
+        const rowDiff = toRow - fromRow;
+        const colDiff = Math.abs(toCol - fromCol);
+        const isForwardMove = (currentTurn === 'red' ? rowDiff === 1 : rowDiff === -1);
+        const isBackwardMove = (currentTurn === 'red' ? rowDiff === -1 : rowDiff === 1);
+        const isDiagonalMove = colDiff === 1 && (isForwardMove || (isBackwardMove && isKing));
+        const isCaptureMove = colDiff === 2 && (Math.abs(rowDiff) === 2);
         const targetEmpty = !cell.classList.contains('piece-red') && !cell.classList.contains('piece-black');
 
         if (isDiagonalMove && targetEmpty) {
           // Regular move
-          cell.classList.add(`piece-${currentTurn}`);
-          selectedCell.classList.remove(`piece-${currentTurn}`, 'selected');
-          selectedCell = null;
+          movePiece(selectedCell, cell);
+          checkForKing(cell);
           toggleTurn();
         } else if (isCaptureMove) {
           // Capture move
@@ -122,21 +134,19 @@
           if (
             capturedCell &&
             capturedCell.classList.contains(`piece-${currentTurn === 'red' ? 'black' : 'red'}`) &&
-            targetEmpty
+            targetEmpty &&
+            (isForwardMove || (isBackwardMove && isKing))
           ) {
             // Perform capture
             capturedCell.classList.remove(`piece-${currentTurn === 'red' ? 'black' : 'red'}`);
-            cell.classList.add(`piece-${currentTurn}`);
-            selectedCell.classList.remove(`piece-${currentTurn}`, 'selected');
-            selectedCell = null;
+            movePiece(selectedCell, cell);
+            checkForKing(cell);
             toggleTurn();
           } else {
-            selectedCell.classList.remove('selected');
-            selectedCell = null;
+            deselectCell();
           }
         } else {
-          selectedCell.classList.remove('selected');
-          selectedCell = null;
+          deselectCell();
         }
       } else {
         // Select a piece to move
@@ -147,6 +157,28 @@
           selectedCell = cell;
           cell.classList.add('selected');
         }
+      }
+    }
+
+    function movePiece(fromCell, toCell) {
+      toCell.classList.add(...fromCell.classList);
+      fromCell.classList.remove('piece-red', 'piece-black', 'king', 'selected');
+      selectedCell = null;
+    }
+
+    function checkForKing(cell) {
+      const row = parseInt(cell.dataset.row);
+      if (currentTurn === 'red' && row === 7 && !cell.classList.contains('king')) {
+        cell.classList.add('king');
+      } else if (currentTurn === 'black' && row === 0 && !cell.classList.contains('king')) {
+        cell.classList.add('king');
+      }
+    }
+
+    function deselectCell() {
+      if (selectedCell) {
+        selectedCell.classList.remove('selected');
+        selectedCell = null;
       }
     }
 
