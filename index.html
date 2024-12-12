@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkers</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 50px);
+      grid-template-rows: repeat(8, 50px);
+      gap: 0;
+      border: 2px solid #333;
+    }
+    .cell {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+    }
+    .light {
+      background-color: #fff;
+    }
+    .dark {
+      background-color: #555;
+    }
+    .dark.piece-red::after {
+      content: '🔴';
+    }
+    .dark.piece-black::after {
+      content: '⚫';
+    }
+  </style>
+</head>
+<body>
+  <div class="board" id="board"></div>
+
+  <script>
+    const board = document.getElementById('board');
+    let currentTurn = 'red'; // Alternates between 'red' and 'black'
+
+    function createBoard() {
+      board.innerHTML = '';
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const cell = document.createElement('div');
+          cell.classList.add('cell', (row + col) % 2 === 0 ? 'light' : 'dark');
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          if ((row + col) % 2 !== 0) {
+            if (row < 3) cell.classList.add('piece-red');
+            if (row > 4) cell.classList.add('piece-black');
+          }
+          board.appendChild(cell);
+        }
+      }
+    }
+
+    function handleCellClick(e) {
+      const cell = e.target;
+      if (!cell.classList.contains('dark')) return;
+
+      const selected = document.querySelector('.selected');
+      if (selected) {
+        // Try to move the piece
+        const fromRow = parseInt(selected.dataset.row);
+        const fromCol = parseInt(selected.dataset.col);
+        const toRow = parseInt(cell.dataset.row);
+        const toCol = parseInt(cell.dataset.col);
+
+        const isValidMove = Math.abs(fromRow - toRow) === 1 && Math.abs(fromCol - toCol) === 1;
+        if (
+          isValidMove &&
+          !cell.classList.contains('piece-red') &&
+          !cell.classList.contains('piece-black')
+        ) {
+          cell.classList.add(`piece-${currentTurn}`);
+          selected.classList.remove(`piece-${currentTurn}`, 'selected');
+          currentTurn = currentTurn === 'red' ? 'black' : 'red';
+        } else {
+          selected.classList.remove('selected');
+        }
+      } else {
+        // Select a piece to move
+        if (
+          (currentTurn === 'red' && cell.classList.contains('piece-red')) ||
+          (currentTurn === 'black' && cell.classList.contains('piece-black'))
+        ) {
+          cell.classList.add('selected');
+        }
+      }
+    }
+
+    board.addEventListener('click', handleCellClick);
+    createBoard();
+  </script>
+</body>
+</html>
