@@ -112,8 +112,8 @@
         const isKing = selectedCell.classList.contains('king');
         const rowDiff = toRow - fromRow;
         const colDiff = Math.abs(toCol - fromCol);
-        const isForwardMove = (currentTurn === 'red' ? rowDiff === 1 : rowDiff === -1);
-        const isBackwardMove = (currentTurn === 'red' ? rowDiff === -1 : rowDiff === 1);
+        const isForwardMove = currentTurn === 'red' ? rowDiff === 1 : rowDiff === -1;
+        const isBackwardMove = currentTurn === 'red' ? rowDiff === -1 : rowDiff === 1;
         const isDiagonalMove = colDiff === 1 && (isForwardMove || (isBackwardMove && isKing));
         const isCaptureMove = colDiff === 2 && Math.abs(rowDiff) === 2;
         const targetEmpty = !cell.classList.contains('piece-red') && !cell.classList.contains('piece-black');
@@ -135,14 +135,18 @@
             capturedCell &&
             capturedCell.classList.contains(`piece-${currentTurn === 'red' ? 'black' : 'red'}`) &&
             targetEmpty &&
-            (isForwardMove || isBackwardMove || isKing);
+            (isKing || isForwardMove);
 
           if (isValidCapture) {
             // Perform capture
             capturedCell.classList.remove(`piece-${currentTurn === 'red' ? 'black' : 'red'}`);
             movePiece(selectedCell, cell);
             checkForKing(cell);
-            toggleTurn();
+
+            // Check for additional captures
+            if (!canCapture(cell)) {
+              toggleTurn();
+            }
           } else {
             deselectCell();
           }
@@ -174,6 +178,42 @@
       } else if (currentTurn === 'black' && row === 0 && !cell.classList.contains('king')) {
         cell.classList.add('king');
       }
+    }
+
+    function canCapture(cell) {
+      const row = parseInt(cell.dataset.row);
+      const col = parseInt(cell.dataset.col);
+      const isKing = cell.classList.contains('king');
+      const directions = isKing
+        ? [[1, 1], [1, -1], [-1, 1], [-1, -1]]
+        : currentTurn === 'red'
+        ? [[1, 1], [1, -1]]
+        : [[-1, 1], [-1, -1]];
+
+      for (const [dRow, dCol] of directions) {
+        const captureRow = row + dRow;
+        const captureCol = col + dCol;
+        const landingRow = row + 2 * dRow;
+        const landingCol = col + 2 * dCol;
+
+        const captureCell = document.querySelector(
+          `[data-row='${captureRow}'][data-col='${captureCol}']`
+        );
+        const landingCell = document.querySelector(
+          `[data-row='${landingRow}'][data-col='${landingCol}']`
+        );
+
+        if (
+          captureCell &&
+          captureCell.classList.contains(`piece-${currentTurn === 'red' ? 'black' : 'red'}`) &&
+          landingCell &&
+          !landingCell.classList.contains('piece-red') &&
+          !landingCell.classList.contains('piece-black')
+        ) {
+          return true;
+        }
+      }
+      return false;
     }
 
     function deselectCell() {
