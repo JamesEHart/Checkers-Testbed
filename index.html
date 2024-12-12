@@ -115,7 +115,7 @@
         const isForwardMove = (currentTurn === 'red' ? rowDiff === 1 : rowDiff === -1);
         const isBackwardMove = (currentTurn === 'red' ? rowDiff === -1 : rowDiff === 1);
         const isDiagonalMove = colDiff === 1 && (isForwardMove || (isBackwardMove && isKing));
-        const isCaptureMove = colDiff === 2 && (Math.abs(rowDiff) === 2);
+        const isCaptureMove = colDiff === 2 && Math.abs(rowDiff) === 2;
         const targetEmpty = !cell.classList.contains('piece-red') && !cell.classList.contains('piece-black');
 
         if (isDiagonalMove && targetEmpty) {
@@ -131,12 +131,13 @@
             `[data-row='${capturedRow}'][data-col='${capturedCol}']`
           );
 
-          if (
+          const isValidCapture =
             capturedCell &&
             capturedCell.classList.contains(`piece-${currentTurn === 'red' ? 'black' : 'red'}`) &&
             targetEmpty &&
-            (isForwardMove || (isBackwardMove && isKing))
-          ) {
+            (isForwardMove || isBackwardMove || isKing);
+
+          if (isValidCapture) {
             // Perform capture
             capturedCell.classList.remove(`piece-${currentTurn === 'red' ? 'black' : 'red'}`);
             movePiece(selectedCell, cell);
