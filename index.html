@@ -27,6 +27,7 @@
       justify-content: center;
       align-items: center;
       font-size: 24px;
+      cursor: pointer;
     }
     .light {
       background-color: #fff;
@@ -40,6 +41,9 @@
     .dark.piece-black::after {
       content: '⚫';
     }
+    .selected {
+      outline: 2px solid yellow;
+    }
   </style>
 </head>
 <body>
@@ -48,6 +52,7 @@
   <script>
     const board = document.getElementById('board');
     let currentTurn = 'red'; // Alternates between 'red' and 'black'
+    let selectedCell = null;
 
     function createBoard() {
       board.innerHTML = '';
@@ -70,25 +75,24 @@
       const cell = e.target;
       if (!cell.classList.contains('dark')) return;
 
-      const selected = document.querySelector('.selected');
-      if (selected) {
-        // Try to move the piece
-        const fromRow = parseInt(selected.dataset.row);
-        const fromCol = parseInt(selected.dataset.col);
+      if (selectedCell) {
+        // Attempt to move
+        const fromRow = parseInt(selectedCell.dataset.row);
+        const fromCol = parseInt(selectedCell.dataset.col);
         const toRow = parseInt(cell.dataset.row);
         const toCol = parseInt(cell.dataset.col);
 
-        const isValidMove = Math.abs(fromRow - toRow) === 1 && Math.abs(fromCol - toCol) === 1;
-        if (
-          isValidMove &&
-          !cell.classList.contains('piece-red') &&
-          !cell.classList.contains('piece-black')
-        ) {
+        const isDiagonalMove = Math.abs(fromRow - toRow) === 1 && Math.abs(fromCol - toCol) === 1;
+        const targetEmpty = !cell.classList.contains('piece-red') && !cell.classList.contains('piece-black');
+
+        if (isDiagonalMove && targetEmpty) {
           cell.classList.add(`piece-${currentTurn}`);
-          selected.classList.remove(`piece-${currentTurn}`, 'selected');
+          selectedCell.classList.remove(`piece-${currentTurn}`, 'selected');
+          selectedCell = null;
           currentTurn = currentTurn === 'red' ? 'black' : 'red';
         } else {
-          selected.classList.remove('selected');
+          selectedCell.classList.remove('selected');
+          selectedCell = null;
         }
       } else {
         // Select a piece to move
@@ -96,6 +100,7 @@
           (currentTurn === 'red' && cell.classList.contains('piece-red')) ||
           (currentTurn === 'black' && cell.classList.contains('piece-black'))
         ) {
+          selectedCell = cell;
           cell.classList.add('selected');
         }
       }
