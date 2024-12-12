@@ -83,13 +83,38 @@
         const toCol = parseInt(cell.dataset.col);
 
         const isDiagonalMove = Math.abs(fromRow - toRow) === 1 && Math.abs(fromCol - toCol) === 1;
+        const isCaptureMove = Math.abs(fromRow - toRow) === 2 && Math.abs(fromCol - toCol) === 2;
         const targetEmpty = !cell.classList.contains('piece-red') && !cell.classList.contains('piece-black');
 
         if (isDiagonalMove && targetEmpty) {
+          // Regular move
           cell.classList.add(`piece-${currentTurn}`);
           selectedCell.classList.remove(`piece-${currentTurn}`, 'selected');
           selectedCell = null;
           currentTurn = currentTurn === 'red' ? 'black' : 'red';
+        } else if (isCaptureMove) {
+          // Capture move
+          const capturedRow = (fromRow + toRow) / 2;
+          const capturedCol = (fromCol + toCol) / 2;
+          const capturedCell = document.querySelector(
+            `[data-row='${capturedRow}'][data-col='${capturedCol}']`
+          );
+
+          if (
+            capturedCell &&
+            capturedCell.classList.contains(`piece-${currentTurn === 'red' ? 'black' : 'red'}`) &&
+            targetEmpty
+          ) {
+            // Perform capture
+            capturedCell.classList.remove(`piece-${currentTurn === 'red' ? 'black' : 'red'}`);
+            cell.classList.add(`piece-${currentTurn}`);
+            selectedCell.classList.remove(`piece-${currentTurn}`, 'selected');
+            selectedCell = null;
+            currentTurn = currentTurn === 'red' ? 'black' : 'red';
+          } else {
+            selectedCell.classList.remove('selected');
+            selectedCell = null;
+          }
         } else {
           selectedCell.classList.remove('selected');
           selectedCell = null;
